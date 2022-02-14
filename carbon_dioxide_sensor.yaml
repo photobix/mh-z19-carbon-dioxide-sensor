@@ -1,0 +1,227 @@
+esphome:
+  name: arbeitszimmer-co2
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+mqtt:
+  broker: >>broker_ip<<
+  username: mosquitto
+
+ota:
+  password: "top_secret"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "ssid"
+    password: "password"
+
+captive_portal:
+
+# CO2 sensor
+uart:
+  rx_pin: 25
+  tx_pin: 26
+  baud_rate: 9600
+
+# Dipslay driver: ST7789
+spi:
+  clk_pin: GPIO18
+  mosi_pin: GPIO19
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+font:
+  - file: "Oswald-Light.ttf"
+    id: font_96
+    size: 96
+  - file: "Oswald-Light.ttf"
+    id: font_80
+    size: 80
+  - file: "Oswald-Light.ttf"
+    id: font_70
+    size: 70
+    glyphs: 0123456789 # Only used for CO2 level
+  - file: "Oswald-Light.ttf"
+    id: font_30
+    size: 30
+  - file: "Oswald-Light.ttf"
+    id: font_20
+    size: 20
+
+color:
+  - id: my_black
+    red: 0%
+    green: 0%
+    blue: 0%
+    white: 0%
+  - id: my_green
+    red: 0%
+    green: 100%
+    blue: 0%
+  - id: my_yellow
+    red: 100%
+    green: 100%
+    blue: 0%
+  - id: my_orange
+    red: 100%
+    green: 55%
+    blue: 0%
+  - id: my_red
+    red: 100%
+    green: 0%
+  - id: my_white
+    red: 100%
+    green: 100%
+    blue: 100%
+
+switch:
+  - platform: gpio
+    pin: GPIO4
+    id: backlight
+    internal: true
+
+sensor:
+  - platform: mhz19
+    co2:
+      name: "MH-Z19 CO2 Value"
+      id: "co2data"
+      accuracy_decimals: 1
+    temperature:
+      name: "MH-Z19 Temperature"
+      id: "co2temp"
+      accuracy_decimals: 1
+    update_interval: 5s
+    automatic_baseline_calibration: false
+    id: sens1
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      internal: true
+      id: wifi_ip_addr
+    ssid:
+      internal: true
+      id: wifi_ssid
+
+binary_sensor:
+  # Button to cycle through pages on the display
+  - platform: gpio
+    pin:
+      number: GPIO35
+      inverted: true
+    id: button_1
+    on_click:
+    - min_length: 50ms
+      max_length: 350ms
+      then:
+        - display.page.show_next: my_display
+        - component.update: my_display
+    - min_length: 2s
+      max_length: 4s
+      then:
+        - mhz19.calibrate_zero: sens1
+        - logger.log: Sensor calibrated
+  - platform: status
+    name: "Node Status"
+    id: system_status
+
+  # Button to toggle the backlight (for use at night)
+  - platform: gpio
+    pin:
+      number: GPIO0
+      inverted: true
+    id: button_2
+    on_click:
+      then:
+        - switch.toggle: backlight
+
+display:
+  - platform: st7789v
+    id: my_display
+    backlight_pin: GPIO4
+    cs_pin: GPIO5
+    dc_pin: GPIO16
+    reset_pin: GPIO23
+    brightness: 100%
+    rotation: 270
+    pages:
+      # Page 1: Current CO2 levels
+      #    0    - 1000 -> Green
+      #    1001 - 1500 -> Orange
+      #    >1500       -> Red
+      - id: page1
+        lambda: |-
+
+          if(!id(co2data).has_state() ){
+            it.print(
+              it.get_width()/2,
+              it.get_height()/2,
+              id(font_70),
+              my_white,
+              TextAlign::CENTER,
+              "Starting..."
+            );
+            return;
+          }
+
+          auto bg_color = id(my_black);
+          auto text_color = id(my_green);
+          auto co2 = id(co2data).state;
+
+          if(co2 > 1000) text_color = id(my_orange);
+          if(co2 > 2000){
+            text_color = id(my_white);
+            bg_color = id(my_red);
+          }
+
+          it.filled_rectangle(0, 0, it.get_width(), it.get_height(), bg_color);
+          it.printf(
+            it.get_width()/2,
+            it.get_height()/2,
+            id(font_80),
+            text_color,
+            TextAlign::CENTER,
+            "%.0f",
+            co2
+          );
+
+      # Page 2: WiFi information
+      - id: page2
+        lambda: |-
+          it.print(
+            0, 0,
+            id(font_30),
+            id(my_white),
+            "WiFi details"
+          );
+
+          it.printf(
+            0, 30,
+            id(font_30),
+            id(my_white),
+            "%s",
+            id(wifi_ssid).state.c_str()
+          );
+
+          it.printf(
+            0, 60,
+            id(font_30),
+            id(my_white),
+            "%s",
+            id(wifi_ip_addr).state.c_str()
+          );
