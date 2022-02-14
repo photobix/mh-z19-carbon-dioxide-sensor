@@ -1,4 +1,6 @@
 Implementierung eines co2 Sensors, basierend auf einem ESP32 und einem MH-Z19, inkl. lokale Anzeige des aktuellen Wertes auf einem Display.
+![](front.jpeg)
+![](back.jpeg)
 
 ## Genutzte Hardware:
 - ICQUANZX T-Display ESP32 WiFi und Bluetooth Modul Entwicklungsboard für Arduino 1.14 Zoll LCD ([https://www.amazon.de/gp/product/B07VNG9D52/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1]())
@@ -13,7 +15,7 @@ Die Implementierung habe ich in esphome vorgenommen, das passende .yaml File ist
 * Anzeige co2 Wert in ppm
 * Farbe in Abhängigkeit vom Wert
 
-### Bei USB Port links gilt:
+### Bei USB Port links gilt
 * obere Taste kurz drücken: Display an/aus
 * obere Taste lange drücken: derzeit keine Funktion
 * untere Taste kurz drücken: Wechsel in den Infoscreen und zurück
