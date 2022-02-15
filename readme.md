@@ -1,8 +1,8 @@
 Implementierung eines co2 Sensors, basierend auf einem ESP32 und einem MH-Z19, inkl. lokale Anzeige des aktuellen Wertes auf einem Display.
 
 ## Bilder
-![](front.jpeg =250x)
-![](back.jpeg =250x)
+![front](front.jpeg =250x)
+![back](back.jpeg =250x)
 
 ## Genutzte Hardware:
 - ICQUANZX T-Display ESP32 WiFi und Bluetooth Modul Entwicklungsboard für Arduino 1.14 Zoll LCD ([https://www.amazon.de/gp/product/B07VNG9D52/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1]())
