@@ -1,7 +1,7 @@
 Implementierung eines co2 Sensors, basierend auf einem ESP32 und einem MH-Z19, inkl. lokale Anzeige des aktuellen Wertes auf einem Display.
 
 ## Bilder
-<img src="front.jpeg" alt="drawing" width="200">
+<img src="front.jpeg" alt="drawing" width="200"/>
 <img src="back.jpeg" alt="drawing" width="200"/>
 
 ## Genutzte Hardware:
